@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Stream WinPlus</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    video {
+      width: 100%;
+      max-width: 720px;
+      height: auto;
+      border: 2px solid #fff;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Transmisión en vivo: WinPlus</h2>
+  <div id="contenedor-video"></div>
+
+  <script>
+    async function obtenerSeñal() {
+      try {
+        const proxy = "https://corsproxy.io/?";
+        const url = "https://streamtpglobal.com/global1.php?stream=winplus";
+        const respuesta = await fetch(proxy + url);
+        const html = await respuesta.text();
+        const regex = /(https?:\/\/[^\s"']+\.m3u8[^\s"']*)/g;
+        const coincidencias = html.match(regex);
+
+        if (coincidencias && coincidencias.length > 0) {
+          const urlM3U8 = coincidencias[0];
+          console.log("Señal encontrada:", urlM3U8);
+          reproducirSeñal(urlM3U8);
+        } else {
+          console.log("No se encontró ninguna señal .m3u8");
+        }
+      } catch (error) {
+        console.error("Error al obtener la señal:", error);
+      }
+    }
+
+    function reproducirSeñal(url) {
+      const contenedor = document.getElementById("contenedor-video");
+      const video = document.createElement("video");
+      video.controls = true;
+      video.autoplay = true;
+      video.width = 640;
+      video.height = 360;
+      contenedor.appendChild(video);
+
+      if (Hls.isSupported()) {
+        const hls = new Hls();
+        hls.loadSource(url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, function () {
+          video.play();
+        });
+      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        video.src = url;
+        video.play();
+      }
+    }
+
+    obtenerSeñal();
+  </script>
+</body>
+</html>
